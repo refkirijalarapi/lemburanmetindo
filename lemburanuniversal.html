@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catatan Lemburan Metindo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; color: #333; font-size: 1.5rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px; border-bottom: 2px solid #45f3ff; }
+        .header select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+        
+        /* Section Gaji & Tunjangan */
+        .salary-settings { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .input-group { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
+        .input-group label { flex: 1; font-size: 0.9em; color: #555; font-weight: bold; }
+        .input-group input { flex: 2; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+        
+        .tunjangan-list-title { font-size: 0.9em; color: #555; font-weight: bold; margin-bottom: 8px; display: block; }
+        .tunjangan-item { display: flex; gap: 5px; margin-bottom: 8px; align-items: center; }
+        .tunjangan-item input { padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85em; }
+        .btn-tambah-tunjangan { background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.8em; margin-top: 5px; width: 100%; font-weight: bold; }
+        .btn-hapus-tunjangan { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        .total-overtime-cost { text-align: center; font-size: 1.2em; margin-bottom: 10px; color: #555; }
+        .total-overtime-cost span { font-weight: bold; color: #28a745; }
+        .total-salary { text-align: center; font-size: 1.1em; font-weight: bold; margin-top: 20px; padding-top: 10px; border-top: 2px solid #45f3ff; color: #555; }
+        
+        .overtime-list-container { border-top: 2px solid #45f3ff; padding-top: 10px; margin-bottom: 20px; }
+        .overtime-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .overtime-info { display: flex; flex-direction: column; flex-grow: 1; }
+        .overtime-date { font-weight: bold; color: #333; }
+        .overtime-reason { color: #666; font-size: 0.85em; }
+        .overtime-hours { font-weight: bold; color: #45f3ff; margin-right: 10px; font-size: 0.9em; }
+        .overtime-cost { font-weight: bold; color: #28a745; margin-right: 15px; }
+        .delete-button { background-color: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.8em; }
+        .add-button { display: block; width: 60px; height: 60px; margin: 20px auto; background-color: #45f3ff; color: #fff; border: none; border-radius: 50%; font-size: 2.5em; cursor: pointer; text-align: center; line-height: 60px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); overflow-y: auto; }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; position: relative; box-sizing: border-box; }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        input[type="time"], input[type="date"], input[type="text"], input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; }
+        
+        .holiday-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; background: #fff4f4; padding: 10px; border-radius: 8px; border: 1px solid #ffcccc; }
+        .summary-box { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745; font-size: 0.9em; }
+        .save-button { background-color: #28a745; color: white; padding: 15px; border: none; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-size: 1.1em; }
+        .legal-text-container { margin-top: 30px; color: #ffffff; font-size: 0.85em; line-height: 1.6; padding: 10px; }
+        .legal-text-container strong { color: #45f3ff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Catatan Lemburan<br> Metindo</h1>
+    
+    <div class="header">
+        <div class="period-display" style="font-size: 0.9em;">
+            <span id="open-date"></span> - <span id="close-date"></span>
+        </div>
+        <select id="period-select">
+    <option value="januari-februari-2025">Jan - Feb 2025</option>
+    <option value="februari-maret-2025">Feb - Mar 2025</option>
+    <option value="maret-april-2025">Mar - Apr 2025</option>
+    <option value="april-mei-2025">Apr - Mei 2025</option>
+    <option value="mei-juni-2025">Mei - Jun 2025</option>
+    <option value="juni-juli-2025">Jun - Jul 2025</option>
+    <option value="juli-agustus-2025">Jul - Agt 2025</option>
+    <option value="agustus-september-2025">Agt - Sep 2025</option>
+    <option value="september-oktober-2025">Sept - Okt 2025</option>
+    <option value="oktober-november-2025">Okt - Nov 2025</option>
+    <option value="november-desember-2025">Nov - Des 2025</option>
+    <option value="desember-januari-2026">Des 2025 - Jan 2026</option>
+
+    <option value="januari-februari-2026">Jan - Feb 2026</option>
+    <option value="februari-maret-2026">Feb - Mar 2026</option>
+    <option value="maret-april-2026">Mar - Apr 2026</option>
+    <option value="april-mei-2026">Apr - Mei 2026</option>
+    <option value="mei-juni-2026">Mei - Jun 2026</option>
+    <option value="juni-juli-2026">Jun - Jul 2026</option>
+    <option value="juli-agustus-2026">Jul - Agt 2026</option>
+    <option value="agustus-september-2026">Agt - Sep 2026</option>
+    <option value="september-oktober-2026">Sept - Okt 2026</option>
+    <option value="oktober-november-2026">Okt - Nov 2026</option>
+    <option value="november-desember-2026">Nov - Des 2026</option>
+    <option value="desember-januari-2027">Des 2026 - Jan 2027</option>
+
+    <option value="januari-februari-2027">Jan - Feb 2027</option>
+    <option value="februari-maret-2027">Feb - Mar 2027</option>
+    <option value="maret-april-2027">Mar - Apr 2027</option>
+    <option value="april-mei-2027">Apr - Mei 2027</option>
+    <option value="mei-juni-2027">Mei - Jun 2027</option>
+    <option value="juni-juli-2027">Jun - Jul 2027</option>
+    <option value="juli-agustus-2027">Jul - Agt 2027</option>
+    <option value="agustus-september-2027">Agt - Sep 2027</option>
+    <option value="september-oktober-2027">Sept - Okt 2027</option>
+    <option value="oktober-november-2027">Okt - Nov 2027</option>
+    <option value="november-desember-2027">Nov - Des 2027</option>
+    <option value="desember-januari-2028">Des 2027 - Jan 2028</option>
+</select>
+
+    </div>
+
+    <div class="salary-settings">
+        <div class="input-group">
+            <label>Gaji Pokok (Rp):</label>
+            <input type="number" id="input-gapok" oninput="saveSettings()">
+        </div>
+        <span class="tunjangan-list-title">Daftar Tunjangan Tetap:</span>
+        <div id="tunjangan-container"></div>
+        <button type="button" class="btn-tambah-tunjangan" id="btn-add-tunjangan">+ Tambah Tunjangan</button>
+    </div>
+    
+    <div class="overtime-list-container">
+        <div id="overtime-list"></div>
+    </div>
+    
+    <div class="total-overtime-cost">Total Lemburan: Rp <span id="total-overtime-cost">0</span></div>
+    <div class="total-overtime-cost">Total Jam: <span style="color: #45f3ff;" id="total-overtime-hour">0</span> Jam</div>
+    <div class="total-salary">Total Gaji (Kotor): <br>Rp <span style="color: #28a745;" id="total-salary">0</span></div>
+
+    <button class="add-button" id="add-button">+</button>
+</div>
+
+<div class="legal-text-container">
+    <h3 style="color: #45f3ff; border-bottom: 1px solid #45f3ff; padding-bottom: 5px; font-size: 1.1em;">Referensi Hukum (PP No. 35 Tahun 2021)</h3>
+    <p><strong>Pasal 31 (Pengali Upah):</strong><br>
+    • Hari Kerja: Jam ke-1 (1,5x), jam berikutnya (2x).<br>
+    • Hari Libur: Jam 1-8 (2x), Jam ke-9 (3x), Jam ke-10 dst (4x).</p>
+    <p><strong>Pasal 32 (Upah Per Jam):</strong><br>
+    Rumus: 1/173 × Upah Sebulan (Gapok + Tunjangan Tetap).</p>
+</div>
+
+<div id="overtimeModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" id="close-button">&times;</span>
+        <h2 style="margin-top: 0;">Tambah Lemburan</h2>
+        <label>Alasan Lembur:</label>
+        <input type="text" id="overtime-reason" value="Packaging Tmmin Export D90">
+        <label>Tanggal:</label>
+        <input type="date" id="TGL">
+        <div style="display: flex; gap:10px;">
+            <div style="flex:1"><label>Mulai</label><input type="time" id="jam-mulai"></div>
+            <div style="flex:1"><label>Selesai</label><input type="time" id="jam-selesai"></div>
+        </div>
+        <div class="holiday-toggle">
+            <input type="checkbox" id="is-holiday">
+            <label for="is-holiday" style="font-weight: bold; color: #dc3545; cursor: pointer;">Lembur Hari Libur</label>
+        </div>
+        <div class="summary-box">
+            <div id="info-potongan" style="color: #666; font-style: italic; margin-bottom: 5px;">Potongan: -</div>
+            <div style="display:flex; justify-content: space-between;"><span>Durasi Bersih:</span><span id="display-durasi" style="font-weight:bold;">0</span> Jam</div>
+            <div style="display:flex; justify-content: space-between; margin-top: 5px;"><span>Estimasi:</span><span id="calculated-cost" style="font-weight:bold; color: #28a745;">Rp 0</span></div>
+        </div>
+        <button class="save-button" id="save-overtime">Simpan Data</button>
+    </div>
+</div>
+
+<script>
+    // Inisialisasi Data
+    let settings = JSON.parse(localStorage.getItem('pasopati_settings')) || {
+        gapok: 3520000,
+        tunjangan: [{nama: "Tunjangan", nilai: 51000}]
+    };
+    let overtimeData = JSON.parse(localStorage.getItem('overtimeData')) || {};
+    let currentNetHours = 0;
+
+    // Data Periode
+    const periodData = {
+    'januari-februari-2025': {start: '16 Jan', end: '15 Feb'},
+    'februari-maret-2025': {start: '16 Feb', end: '15 Mar'},
+    'maret-april-2025': {start: '16 Mar', end: '15 Apr'},
+    'april-mei-2025': {start: '16 Apr', end: '15 Mei'},
+    'mei-juni-2025': {start: '16 Mei', end: '15 Jun'},
+    'juni-juli-2025': {start: '16 Jun', end: '15 Jul'},
+    'juli-agustus-2025': {start: '16 Jul', end: '15 Agt'},
+    'agustus-september-2025': {start: '16 Agt', end: '15 Sep'},
+    'september-oktober-2025': {start: '16 Sep', end: '15 Okt'},
+    'oktober-november-2025': {start: '16 Okt', end: '15 Nov'},
+    'november-desember-2025': {start: '16 Nov', end: '15 Des'},
+    'desember-januari-2026': {start: '16 Des', end: '15 Jan'},
+    'januari-februari-2026': {start: '16 Jan', end: '15 Feb'},
+    'februari-maret-2026': {start: '16 Feb', end: '15 Mar'},
+    'maret-april-2026': {start: '16 Mar', end: '15 Apr'},
+    'april-mei-2026': {start: '16 Apr', end: '15 Mei'},
+    'mei-juni-2026': {start: '16 Mei', end: '15 Jun'},
+    'juni-juli-2026': {start: '16 Jun', end: '15 Jul'},
+    'juli-agustus-2026': {start: '16 Jul', end: '15 Agt'},
+    'agustus-september-2026': {start: '16 Agt', end: '15 Sep'},
+    'september-oktober-2026': {start: '16 Sep', end: '15 Okt'},
+    'oktober-november-2026': {start: '16 Okt', end: '15 Nov'},
+    'november-desember-2026': {start: '16 Nov', end: '15 Des'},
+    'desember-januari-2027': {start: '16 Des', end: '15 Jan'},
+    'januari-februari-2027': {start: '16 Jan', end: '15 Feb'},
+    'februari-maret-2027': {start: '16 Feb', end: '15 Mar'},
+    'maret-april-2027': {start: '16 Mar', end: '15 Apr'},
+    'april-mei-2027': {start: '16 Apr', end: '15 Mei'},
+    'mei-juni-2027': {start: '16 Mei', end: '15 Jun'},
+    'juni-juli-2027': {start: '16 Jun', end: '15 Jul'},
+    'juli-agustus-2027': {start: '16 Jul', end: '15 Agt'},
+    'agustus-september-2027': {start: '16 Agt', end: '15 Sep'},
+    'september-oktober-2027': {start: '16 Sep', end: '15 Okt'},
+    'oktober-november-2027': {start: '16 Okt', end: '15 Nov'},
+    'november-desember-2027': {start: '16 Nov', end: '15 Des'},
+    'desember-januari-2028': {start: '16 Des', end: '15 Jan'}
+};
+
+
+    function saveSettings() {
+        settings.gapok = parseInt(document.getElementById('input-gapok').value) || 0;
+        const names = document.querySelectorAll('.tunj-nama');
+        const values = document.querySelectorAll('.tunj-nilai');
+        settings.tunjangan = [];
+        names.forEach((n, i) => {
+            settings.tunjangan.push({nama: n.value, nilai: parseInt(values[i].value) || 0});
+        });
+        localStorage.setItem('pasopati_settings', JSON.stringify(settings));
+        render();
+    }
+
+    function renderTunjanganInputs() {
+        const container = document.getElementById('tunjangan-container');
+        container.innerHTML = '';
+        settings.tunjangan.forEach((t, index) => {
+            const div = document.createElement('div');
+            div.className = 'tunjangan-item';
+            div.innerHTML = `
+                <input type="text" class="tunj-nama" value="${t.nama}" placeholder="Nama" oninput="saveSettings()" style="flex:2;">
+                <input type="number" class="tunj-nilai" value="${t.nilai}" placeholder="Rp" oninput="saveSettings()" style="flex:1;">
+                <button type="button" class="btn-hapus-tunjangan" onclick="hapusTunjangan(${index})">×</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function hapusTunjangan(index) {
+        settings.tunjangan.splice(index, 1);
+        localStorage.setItem('pasopati_settings', JSON.stringify(settings));
+        renderTunjanganInputs();
+        render();
+    }
+
+    document.getElementById('btn-add-tunjangan').onclick = () => {
+        settings.tunjangan.push({nama: "", nilai: 0});
+        renderTunjanganInputs();
+        saveSettings();
+    };
+
+    function getUpahPerJam() {
+        let total = settings.gapok;
+        settings.tunjangan.forEach(t => total += t.nilai);
+        return total / 173;
+    }
+
+    function hitungBiaya(jam, isHoliday) {
+        const upah = getUpahPerJam();
+        if (isHoliday) {
+            if (jam <= 8) return Math.round(jam * 2 * upah);
+            if (jam <= 9) return Math.round((8 * 2 * upah) + (3 * upah));
+            return Math.round((8 * 2 * upah) + (3 * upah) + ((jam - 9) * 4 * upah));
+        }
+        if (jam <= 1) return Math.round(1.5 * jam * upah);
+        return Math.round((1.5 * upah) + ((jam - 1) * 2 * upah));
+    }
+
+    function updateKalkulasi() {
+        const mulai = document.getElementById('jam-mulai').value;
+        const selesai = document.getElementById('jam-selesai').value;
+        const isHoliday = document.getElementById('is-holiday').checked;
+        if (mulai && selesai) {
+            let [h1, m1] = mulai.split(':').map(Number);
+            let [h2, m2] = selesai.split(':').map(Number);
+            let t1 = h1 * 60 + m1;
+            let t2 = h2 * 60 + m2;
+            if (t2 < t1) t2 += 1440;
+            let durasiKotor = (t2 - t1) / 60;
+            let potongan = isHoliday ? (t1 < 765 && t2 > 705 ? 1 : 0) : (t1 < 1110 && t2 > 1080 ? 0.5 : 0);
+            currentNetHours = Math.max(0, durasiKotor - potongan);
+            document.getElementById('display-durasi').innerText = currentNetHours.toFixed(1);
+            document.getElementById('calculated-cost').innerText = "Rp " + hitungBiaya(currentNetHours, isHoliday).toLocaleString('id-ID');
+        }
+    }
+
+    function render() {
+        const period = document.getElementById('period-select').value;
+        const data = overtimeData[period] || [];
+        const list = document.getElementById('overtime-list');
+        list.innerHTML = '';
+        let totalLembur = 0, totalHours = 0;
+
+        data.forEach((item, index) => {
+            const biaya = hitungBiaya(parseFloat(item.jam), item.isHoliday);
+            totalLembur += biaya;
+            totalHours += parseFloat(item.jam);
+            list.innerHTML += `<div class="overtime-item"><div class="overtime-info"><span class="overtime-date">${item.tanggal}</span><span class="overtime-reason">${item.alasan}</span></div><div class="overtime-hours">${item.jam}j</div><div class="overtime-cost">Rp ${biaya.toLocaleString('id-ID')}</div><button class="delete-button" onclick="hapusLembur(${index})">×</button></div>`;
+        });
+
+        let totalTunjangan = settings.tunjangan.reduce((sum, t) => sum + t.nilai, 0);
+        document.getElementById('total-overtime-cost').innerText = totalLembur.toLocaleString('id-ID');
+        document.getElementById('total-overtime-hour').innerText = totalHours.toFixed(1);
+        document.getElementById('total-salary').innerText = (settings.gapok + totalTunjangan + totalLembur).toLocaleString('id-ID');
+        
+        const dates = periodData[period] || {start: '-', end: '-'};
+        document.getElementById('open-date').innerText = dates.start;
+        document.getElementById('close-date').innerText = dates.end;
+    }
+
+    function hapusLembur(index) {
+        if(confirm('Hapus?')) {
+            overtimeData[document.getElementById('period-select').value].splice(index, 1);
+            localStorage.setItem('overtimeData', JSON.stringify(overtimeData));
+            render();
+        }
+    }
+
+    document.getElementById('save-overtime').onclick = () => {
+        const p = document.getElementById('period-select').value;
+        const tgl = document.getElementById('TGL').value;
+        if (!tgl || currentNetHours <= 0) return alert('Data tidak lengkap!');
+        if (!overtimeData[p]) overtimeData[p] = [];
+        overtimeData[p].push({
+            tanggal: tgl,
+            alasan: document.getElementById('overtime-reason').value,
+            jam: currentNetHours.toFixed(1),
+            isHoliday: document.getElementById('is-holiday').checked
+        });
+        localStorage.setItem('overtimeData', JSON.stringify(overtimeData));
+        document.getElementById('overtimeModal').style.display = 'none';
+        render();
+    };
+
+    document.getElementById('add-button').onclick = () => document.getElementById('overtimeModal').style.display = 'block';
+    document.getElementById('close-button').onclick = () => document.getElementById('overtimeModal').style.display = 'none';
+    document.getElementById('period-select').onchange = render;
+    [document.getElementById('jam-mulai'), document.getElementById('jam-selesai'), document.getElementById('is-holiday')].forEach(el => el.onchange = updateKalkulasi);
+
+    // --- LOGIKA AUTO SELECT BULAN (FIXED) ---
+    function setAutoPeriod() {
+        const now = new Date();
+        const tgl = now.getDate();
+        const bln = now.getMonth(); // 0 = Jan, 1 = Feb, ...
+        const thn = now.getFullYear();
+        const bulanIndo = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+
+        let idxBulanAwal, idxBulanAkhir, tahunAwal, tahunAkhir;
+
+        if (tgl <= 15) {
+            // Periode: 16 Bulan Lalu - 15 Bulan Ini
+            idxBulanAwal = (bln === 0) ? 11 : bln - 1;
+            idxBulanAkhir = bln;
+            tahunAwal = (bln === 0) ? thn - 1 : thn;
+            tahunAkhir = thn;
+        } else {
+            // Periode: 16 Bulan Ini - 15 Bulan Depan
+            idxBulanAwal = bln;
+            idxBulanAkhir = (bln === 11) ? 0 : bln + 1;
+            tahunAwal = thn;
+            tahunAkhir = (bln === 11) ? thn + 1 : thn;
+        }
+
+        const targetValue = `${bulanIndo[idxBulanAwal]}-${bulanIndo[idxBulanAkhir]}-${tahunAkhir}`;
+        
+        const dropdown = document.getElementById('period-select');
+        if (document.querySelector(`#period-select option[value="${targetValue}"]`)) {
+            dropdown.value = targetValue;
+        }
+    }
+
+    // Load Initial
+    document.getElementById('input-gapok').value = settings.gapok;
+    renderTunjanganInputs();
+    setAutoPeriod();
+    render();
+</script>
+</body>
+</html>
